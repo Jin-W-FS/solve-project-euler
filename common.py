@@ -62,38 +62,45 @@ def fibN(i):
     a = (1 + sqrt5) / 2
     return round(a ** i / sqrt5)
 
-_prim_cache = [2, 3]
+from itertools import count
+_prim_cache = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
 def _inPrimCache(n, cache):
     from bisect import bisect_left
     i = bisect_left(cache, n)
     return 0 <= i < len(cache) and cache[i] == n
 
+def _isPrim(n, cache):
+    for p in cache:
+        if p**2 > n: return True
+        if n % p == 0: return False
+    raise RuntimeError("shouldn't reach here")
+
+def _nextPrim(cache):
+    if len(cache) < 2:
+        return 2 if not cache else 3
+    for n in count(start=cache[-1]+2, step=2):
+        if _isPrim(n, cache): return n
+
 def initPrimCache(n):
     global _prim_cache
     _prim_cache = list(prims_lt(n))
 
+def prim(i):
+    while len(_prim_cache) <= i:
+        _prim_cache.append(_nextPrim(_prim_cache))
+    return _prim_cache[i]
+
+def prims():
+    for i in count(): yield prim(i)
+
 def isPrim(n):
     if n <= _prim_cache[-1]:
-        return _inPrimCache(n, cache)
+        return _inPrimCache(n, _prim_cache)
     for p in prims():
         if p**2 > n:
             return True
         if n % p == 0:
             return False
-
-def prim(i):
-    if i < len(_prim_cache):
-        return _prim_cache[i]
-    p = prim(i-1)
-    while True:
-        p += 2
-        if isPrim(p): return p
-
-def prims():
-    i = 0
-    while True:
-        yield prim(i)
-        i += 1
 
 def prims_lt(N):
     lst = list(range(N))
@@ -135,6 +142,33 @@ def digits(n):
     while n:
         n, r = divmod(n, 10)
         yield r
+
+def lstdigits(init, base=10):
+    lst = list(init)
+    while True:
+        yield lst
+        lst[-1] += 1
+        for i in reversed(range(len(lst))):
+            if lst[i] == base:
+                if i == 0: return
+                lst[i] = 0
+                lst[i-1] += 1
+
+def cmbdigits(lst, base=10):
+    s = 0
+    for n in lst: s = s * base + n
+    return s
+
+def palindromics(length, base=10):
+    '''those reads the same from both side, of length length, under base base'''
+    assert(length > 0)
+    n = (length + 1) // 2 # length = 2n | 2n - 1
+    vec = [0] * length
+    init = [1] + [0] * (n-1)
+    for lst in lstdigits(init, base):
+        vec[:n] = lst
+        vec[-n:] = reversed(lst)
+        yield cmbdigits(vec, base)
 
 @lru_cache(maxsize=None)
 def Comb(r, n):
