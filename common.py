@@ -63,44 +63,55 @@ def fibN(i):
     return round(a ** i / sqrt5)
 
 from itertools import count
-_prim_cache = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53]
-def _inPrimCache(n, cache):
-    from bisect import bisect_left
-    i = bisect_left(cache, n)
-    return 0 <= i < len(cache) and cache[i] == n
 
-def _isPrim(n, cache):
-    for p in cache:
+class IncSerial:
+    '''an unlimited increasing number serial'''
+    def __init__(self, initial, genNext):
+        self.lst = list(initial)
+        self.genNext = genNext
+        
+    def rebase(self, lst):
+        self.lst = list(lst)
+
+    def __getitem__(self, idx):
+        while len(self.lst) <= idx:
+            self.lst.append(self.genNext(self.lst))
+        return self.lst[idx]
+    
+    def __iter__(self):
+        for i in count(): yield self[i]
+        
+    def __contains__(self, n):
+        return self.index(n) is not None
+
+    def index(self, n):
+        if self.lst[-1] >= n:
+            from bisect import bisect_left
+            idx = bisect_left(self.lst, n)
+            if (0 <= idx < len(self.lst) and self.lst[idx] == n): return idx
+        else:
+            while self.lst[-1] < n:
+                v = self.genNext(self.lst)
+                self.lst.append(v)
+                if v == n: return len(self.lst)-1
+        # if n not in self:
+        return None
+
+
+def __isPrim(n, lst):
+    for p in lst:
         if p**2 > n: return True
         if n % p == 0: return False
-    raise RuntimeError("shouldn't reach here")
 
-def _nextPrim(cache):
-    if len(cache) < 2:
-        return 2 if not cache else 3
-    for n in count(start=cache[-1]+2, step=2):
-        if _isPrim(n, cache): return n
+def __nextPrim(lst):
+    for n in count(start=lst[-1]+2, step=2):
+        if __isPrim(n, lst): return n
 
-def initPrimCache(n):
-    global _prim_cache
-    _prim_cache = list(prims_lt(n))
+Prims = IncSerial([2, 3], __nextPrim)
 
-def prim(i):
-    while len(_prim_cache) <= i:
-        _prim_cache.append(_nextPrim(_prim_cache))
-    return _prim_cache[i]
-
-def prims():
-    for i in count(): yield prim(i)
-
-def isPrim(n):
-    if n <= _prim_cache[-1]:
-        return _inPrimCache(n, _prim_cache)
-    for p in prims():
-        if p**2 > n:
-            return True
-        if n % p == 0:
-            return False
+prim = lambda i: Prims[i]
+prims = lambda: iter(Prims)
+isPrim = lambda n: n in Prims
 
 def prims_lt(N):
     lst = list(range(N))
@@ -232,3 +243,22 @@ def Arranges(base):
     while not c:
         yield SwitchElemsLitera(l, base)
         c = ArrangeInc(l)
+
+class sortedlist(list):
+    def __init__(self, iterable=(), unique=False):
+        super().__init__()
+        self.unique = unique
+        for v in sorted(iterable):
+            if self.unique and len(self) and v == self[-1]: continue
+            self.append(v)
+    def insert(self, item):
+        from bisect import bisect_left
+        idx = bisect_left(self, item)
+        if self.unique and idx < len(self) and self[idx] == item: return
+        super().insert(idx, item)
+    def index_gt(self, item):
+        from bisect import bisect_right
+        return bisect_right(self, item)
+    def index_ge(self, item):
+        from bisect import bisect_left
+        return bisect_left(self, item)
