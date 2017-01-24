@@ -1,5 +1,5 @@
 from itertools import count
-from common import Counter, lru_cache, Factorize2
+from common import Counter, lru_cache, Factorize
 
 def CountFacts(d):
     m = 1
@@ -7,14 +7,12 @@ def CountFacts(d):
         m *= (v + 1)
     return m
 
-@lru_cache(maxsize=None)
-def Factorize_c(n):
-    return Factorize2(n)
+Factorize = lru_cache(maxsize=None)(Factorize)
 
 for i in count(2):
     # n = (i-1)*i//2
-    d0 = Factorize_c(i-1)
-    d1 = Factorize_c(i)
+    d0 = Factorize(i-1)
+    d1 = Factorize(i)
     d = Counter(d0)
     d.update(d1)
     d[2] -= 1

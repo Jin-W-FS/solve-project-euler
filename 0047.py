@@ -1,8 +1,8 @@
-from common import count, isPrim, Factorize3
+from common import count, isPrim, Factorize
 
 def countFacts(n):
     if isPrim(n): return 1
-    return len(Factorize3(n))
+    return len(Factorize(n))
 
 N = 4
 lst = []
@@ -13,4 +13,3 @@ for n in count(1):
     else:
         lst.clear()
 print(lst)
-

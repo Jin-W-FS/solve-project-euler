@@ -1,28 +1,5 @@
-def Factorize(y):
-    f = []
-    p = prims()
-    x = next(p)
-    while y > 1:
-        while y % x != 0:
-            x = next(p)
-        f.append(x)
-        y = y // x
-    return f
-
-# print(Factorize(600851475143))
-
 from collections import Counter
-def Factorize2(y):
-    f = Counter()
-    x = 2
-    while y > 1:
-        while y % x != 0:
-            x += 1
-        f[x] += 1
-        y = y // x
-    return f
-
-def Factorize3(y):
+def Factorize(y):
     f = Counter()
     p = prims()
     x = next(p)
@@ -46,8 +23,6 @@ def ProperDivisors(x):
             if x % i == 0:
                 d.extend((i, x // i))
     return d
-
-# print(Factorize2(999999))
 
 from functools import lru_cache
 
@@ -112,17 +87,21 @@ Prims = IncSerial([2, 3], __nextPrim)
 prim = lambda i: Prims[i]
 prims = lambda: iter(Prims)
 isPrim = lambda n: n in Prims
+isPrim2 = lambda n: isPrim(n) if n <= Prims[-1] else __isPrim(n, Prims)
+    
+def primTable(N):
+    lst = [True] * N
+    lst[0] = lst[1] = False
+    for i in range(N):
+        if lst[i]:
+            for x in count(i+i, i):
+                if x >= N: break
+                lst[x] = False
+    return lst # lst[n] == isPrim(n)
 
 def prims_lt(N):
-    lst = list(range(N))
-    lst[0] = lst[1] = 0
-    for i in range(N):
-        if lst[i] == 0: continue
-        x = i+i
-        while x < N:
-            lst[x] = 0
-            x += i
-    return filter(None, lst)
+    tab = primTable(N)
+    return [n for n in range(N) if tab[n]]
 
 def prim_factors_lt(N):
     factors = [[] for i in range(N)]

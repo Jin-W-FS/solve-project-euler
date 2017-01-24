@@ -1,8 +1,8 @@
-from common import Factorize2
+from common import Factorize
 
 d = {}
 for i in range(1, 21):
-    f = Factorize2(i)
+    f = Factorize(i)
     for k, v in f.items():
         if d.get(k, 0) < v:
             d[k] = v
