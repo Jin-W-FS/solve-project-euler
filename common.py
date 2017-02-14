@@ -10,7 +10,16 @@ def Factorize(y):
         y = y // x
     return f
 
-def ProperDivisors(x):
+def Divisors(facts):
+    if not isinstance(facts, dict): facts = Factorize(facts)
+    if not facts: return [1]
+    ks, vs = zip(*facts.items())
+    return sorted(prod(k**t for k, t in zip(ks, ts)) for ts in Combinations(vs)) 
+
+def ProperDivisors(arg):
+    return Divisors(arg)[:-1]
+
+def ProperDivisorsN(x):
     d = [1]
     for i in range(2, x):
         i2 = i * i
@@ -23,6 +32,14 @@ def ProperDivisors(x):
             if x % i == 0:
                 d.extend((i, x // i))
     return d
+
+from functools import reduce
+def prod(iterable, start=None):
+    '''prod => product of iterable'''
+    if start is None:
+        return reduce((lambda x, y: x * y), iterable)
+    else:
+        return reduce((lambda x, y: x * y), iterable, start)
 
 from functools import lru_cache
 
@@ -223,6 +240,11 @@ def Arranges(base):
         yield SwitchElemsLitera(l, base)
         c = ArrangeInc(l)
 
+def Combinations(maxes, includes=True):
+    '''generate product vs of which vs[i] is between 0 and maxes[i](includes maxes[i])'''
+    from itertools import product
+    return product(*(range(m+includes) for m in maxes))
+
 class sortedlist(list):
     def __init__(self, iterable=(), unique=False):
         super().__init__()
@@ -241,3 +263,16 @@ class sortedlist(list):
     def index_ge(self, item):
         from bisect import bisect_left
         return bisect_left(self, item)
+
+def WaysSumToWith(lst):
+    @lru_cache(maxsize=None)
+    def WaysSumTo(n, i=0):
+        '''find out ways to sum to n with element in lst[i:]'''
+        if n == 0: return 1
+        try: v = lst[i]
+        except IndexError: return 0
+        if v > n: return 0
+        return sum(WaysSumTo(n-k*v, i+1) for k in range(n//v+1))
+        # return WaysSumTo(n-v, i) + WaysSumTo(n, i+1)
+    return WaysSumTo
+
